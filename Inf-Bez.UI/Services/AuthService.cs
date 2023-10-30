@@ -6,24 +6,60 @@ namespace InfBez.Ui.Services
 {
     public class AuthService : IAuthService
     {
+        private readonly UsersRepository repository;
+        private readonly CookieService cookieService;
+        private readonly ISession session;
+
+        public AuthService(UsersRepository repository, CookieService cookieService, ISession session)
+        {
+            this.repository = repository;
+            this.cookieService = cookieService;
+            this.session = session;
+        }
+
         public async Task<bool> CheckToken(string token)
         {
-            return true;
+            return token == await cookieService.GetCookies("token");
         }
 
         public async Task<User> GetCurrentUser()
         {
-            return new User();
+            var token = await cookieService.GetCookies("token");
+            var id = await session.GetUserId(token);
+
+            var user = await repository.ReadFirst(u => u.Id == id);
+            return user;
         }
 
         public async Task<User> Login(AuthModel authModel)
         {
-            return new User();
+            var user = await repository.ReadFirst(u => u.Login == authModel.Login && u.Password == authModel.Password);
+            if (user == null) throw new NotImplementedException($"incorrect login or password");
+
+            var token = Guid.NewGuid().ToString();
+            await cookieService.SetCookies("token", token);
+            await session.Add(user.Id, token);
+
+            return user;
         }
 
-        public async Task Registrate(RegistrationModel registrationModel, long chatId)
+        public async Task Logout()
         {
-            return;
+            var token = await cookieService.GetCookies("token");
+            await session.Delete(token);
+        }
+
+        public async Task Registrate(RegistrationModel registrationModel)
+        {
+            var user = await repository.ReadFirst(u => u.Login == registrationModel.Email);
+            if (user != null) throw new NotImplementedException($"login {user.Login} is busy");
+
+            await repository.Create(new User()
+            {
+                Name = registrationModel.Name,
+                Login = registrationModel.Email,
+                Password = registrationModel.Password,
+            });
         }
     }
 }

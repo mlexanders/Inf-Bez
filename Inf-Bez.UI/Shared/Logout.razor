@@ -1,0 +1,18 @@
+﻿@page "/logout"
+@using InfBez.Ui.Services;
+@using InfBez.Ui.Difinitions;
+@inject AuthenticationStateProvider Provider
+
+
+@code
+{
+    [Inject]
+    protected NavigationManager NavigationManager { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await((TokenService)Provider).SetLogoutState();
+        NavigationManager.NavigateTo(Pages.Login, true);
+        await base.OnInitializedAsync();
+    }
+}

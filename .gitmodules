@@ -1,0 +1,3 @@
+[submodule "CRUD.Actions"]
+	path = CRUD.Actions
+	url = https://github.com/mlexanders/CRUD.Actions

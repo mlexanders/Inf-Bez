@@ -14,10 +14,10 @@ namespace InfBez.Ui.Services
             this.cookieService = cookieService;
         }
 
-        public async void SetLogoutState()
+        public async Task SetLogoutState()
         {
             await cookieService.SetCookies("token", "");
-
+            await authService.Logout();
             NotifyAuthenticationStateChanged(Task.FromResult(GetStateAnonymous()));
         }
 
@@ -37,11 +37,11 @@ namespace InfBez.Ui.Services
 
             return new AuthenticationState(claimsPrincipal);
         }
+
         private static AuthenticationState GetStateAnonymous()
         {
             var anonymous = new ClaimsPrincipal(new ClaimsIdentity());
-            var state = new AuthenticationState(anonymous);
-            return state;
+            return new(anonymous);
         }
     }
 }

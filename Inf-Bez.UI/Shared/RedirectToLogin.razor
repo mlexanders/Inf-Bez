@@ -11,7 +11,7 @@
 
         if (authenticationState?.User?.Identity is null || !authenticationState.User.Identity.IsAuthenticated)
         {
-            Navigation.NavigateTo(Pages.Login, false);
+            Navigation.NavigateTo(Pages.Login, true);
         }
     }
 }
