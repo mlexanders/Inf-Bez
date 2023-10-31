@@ -33,8 +33,8 @@ namespace InfBez.Ui.Services
 
         public async Task<User> Login(AuthModel authModel)
         {
-            var user = await repository.ReadFirst(u => u.Login == authModel.Login && u.Password == authModel.Password);
-            if (user == null) throw new NotImplementedException($"incorrect login or password");
+            var user = await repository.ReadFirst(u => u.Login == authModel.Login) ?? throw new NotImplementedException($"incorrect login or password");
+            if (!PasswordHasher.VerifyPassword(authModel.Password, user.Password)) throw new NotImplementedException($"incorrect login or password");
 
             var token = Guid.NewGuid().ToString();
             await cookieService.SetCookies("token", token);
@@ -58,7 +58,7 @@ namespace InfBez.Ui.Services
             {
                 Name = registrationModel.Name,
                 Login = registrationModel.Email,
-                Password = registrationModel.Password,
+                Password = PasswordHasher.HashPassword(registrationModel.Password),
             });
         }
     }
