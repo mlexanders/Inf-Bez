@@ -53,6 +53,27 @@ else
 
                                 <RadzenRow AlignItems="AlignItems.Center">
                                     <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Phone" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenTextBox Name="Phone" @bind-Value=@model.Phone Style="width: 100%;" />
+                                        <RadzenCustomValidator Component="Phone" Validator="@(() => model?.Phone?.Length == 11)" Text="Phone is not valid" Popup=@popup />
+                                        <RadzenRequiredValidator Popup="@popup" Style="position: absolute" />
+                                    </RadzenColumn>
+                                </RadzenRow>
+
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                <RadzenLabel Text="Adress" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenTextBox Name="Adress" @bind-Value=@model.Adress Style="width: 100%;" />
+                                        <RadzenRequiredValidator Popup="@popup" Style="position: absolute" />
+                                    </RadzenColumn>
+                                </RadzenRow>
+
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
                                         <RadzenLabel Text="Password" />
                                     </RadzenColumn>
                                     <RadzenColumn Size="12" SizeMD="8">
@@ -125,6 +146,6 @@ else
 
     private bool ValidatePassword(string pass)
     {
-        return pass.Select(c => char.IsDigit(c)).Count() >= 3;
+        return pass?.Select(c => char.IsDigit(c)).Count() >= 3;
     }
 }

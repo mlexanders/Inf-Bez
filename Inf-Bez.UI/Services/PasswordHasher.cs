@@ -29,25 +29,32 @@ namespace InfBez.Ui.Services
 
         public static bool VerifyPassword(string password, string hashedPassword)
         {
-            // Извлечение соли из хешированного пароля
-            byte[] hashBytes = Convert.FromBase64String(hashedPassword);
-            byte[] salt = new byte[16];
-            Array.Copy(hashBytes, 0, salt, 0, 16);
-
-            // Повторное хеширование введенного пароля с извлеченной солью
-            var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000);
-            byte[] hash = pbkdf2.GetBytes(20);
-
-            // Сравнение полученного хеша с хешем из базы данных
-            for (int i = 0; i < 20; i++)
+            try
             {
-                if (hashBytes[i + 16] != hash[i])
-                {
-                    return false; // Пароли не совпадают
-                }
-            }
+                // Извлечение соли из хешированного пароля
+                byte[] hashBytes = Convert.FromBase64String(hashedPassword);
+                byte[] salt = new byte[16];
+                Array.Copy(hashBytes, 0, salt, 0, 16);
 
-            return true; // Пароли совпадают
+                // Повторное хеширование введенного пароля с извлеченной солью
+                var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000);
+                byte[] hash = pbkdf2.GetBytes(20);
+
+                // Сравнение полученного хеша с хешем из базы данных
+                for (int i = 0; i < 20; i++)
+                {
+                    if (hashBytes[i + 16] != hash[i])
+                    {
+                        return false; // Пароли не совпадают
+                    }
+                }
+
+                return true; // Пароли совпадают
+            }
+            catch 
+            {
+                return false;
+            }
         }
     }
 

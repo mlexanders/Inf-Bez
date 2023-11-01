@@ -1,9 +1,80 @@
 ﻿@page "/"
 @attribute [Authorize]
+@using Radzen
+@using Microsoft.JSInterop
+@using System.Text;
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Index</PageTitle>
 <RadzenRow Gap="5" RowGap="5">
     <RadzenColumn Size="12">
-      
+        <RadzenHtmlEditor @bind-Value=@htmlValue style="height: 300px;" UploadUrl="upload/image" />
+        <RadzenCard>
+            <RadzenButton Text="Save" Click=@SaveFile></RadzenButton>
+            @fileContent
+            <InputFile OnChange="LoadFiles" />
+            @* <RadzenFileInput TValue="IBrowserFile" @bind-FileSize=@fileSize Change=@(args => OnChange(args)) @bind-FileName=@_fileName/> *@
+            </RadzenCard>
     </RadzenColumn>
 </RadzenRow>
+
+
+@code {
+    string htmlValue = "<h1>Hello World!</h1>";
+    private string fileContent = "";
+    private string _fileName;
+    private long? fileSize;
+
+    private async Task OnChange(IBrowserFile value)
+    {
+
+        using (FileStream fstream = File.OpenRead($"C:\\Users\\Sainz\\Downloads\\{_fileName}"))
+        {
+            byte[] buffer = new byte[fstream.Length];
+            await fstream.ReadAsync(buffer, 0, buffer.Length);
+            htmlValue = Encoding.Default.GetString(buffer);
+        }
+
+        Console.WriteLine($"Value changed to {value}");
+    }
+
+    private async Task Open()
+    {
+    //
+    }
+
+    private async Task SaveFile()
+    {
+        try
+        {
+            string text = htmlValue;
+
+            string fileName = await JSRuntime.InvokeAsync<string>("prompt", "Введите имя файла");
+
+            if (!string.IsNullOrEmpty(fileName))
+            {
+                string filePath = fileName + ".txt";
+
+                await JSRuntime.InvokeVoidAsync("saveTextAsFile", filePath, text);
+            }
+        }
+        catch (Exception ex) { }
+    }
+
+    private async void LoadFiles(InputFileChangeEventArgs e)
+    {
+        var stream = e.File.OpenReadStream();
+        StreamReader reader = new StreamReader(stream);
+        fileContent = reader.ReadToEnd();
+        StateHasChanged();
+    }
+
+    private async Task HandleFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        var buffer = new byte[file.Size];
+        await file.OpenReadStream().ReadAsync(buffer);
+        fileContent = Encoding.UTF8.GetString(buffer);
+        _fileName = file.Name;
+    }
+}

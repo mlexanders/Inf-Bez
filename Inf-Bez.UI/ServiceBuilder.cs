@@ -18,6 +18,7 @@ namespace InfBez.Ui
             services.AddScoped<AuthService>();
             services.AddScoped<AuthenticationStateProvider, TokenService>();
             services.AddSingleton<ISession, SessionService>();
+            services.AddSingleton<FailedSigInService>();
 
             services.AddOptions();
             services.AddAuthorizationCore();
