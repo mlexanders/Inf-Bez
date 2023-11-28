@@ -10,7 +10,7 @@
     }
 </style>
 
-<RadzenDataGrid @ref="ordersGrid" AllowAlternatingRows="false" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" EditMode="DataGridEditMode.Single"
+<RadzenDataGrid @ref="usersGrid" AllowAlternatingRows="false" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" EditMode="DataGridEditMode.Single"
                 Data="@users" TItem="User" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset" >
     <Columns>
         <RadzenDataGridColumn TItem="User" Property="Id" Title="ID" Width="60px" Frozen="true" />
@@ -45,7 +45,7 @@
 </RadzenDataGrid>
 
 @code {
-    RadzenDataGrid<User> ordersGrid;
+    RadzenDataGrid<User> usersGrid;
     IEnumerable<User> users;
 
     List<Role> Roles = new()
@@ -73,7 +73,7 @@
     async Task EditRow(User user)
     {
         userToUpdate = user;
-        await ordersGrid.EditRow(user);
+        await usersGrid.EditRow(user);
     }
 
     void OnUpdateRow(User user)
@@ -87,14 +87,14 @@
 
     async Task SaveRow(User user)
     {
-        await ordersGrid.UpdateRow(user);
+        await usersGrid.UpdateRow(user);
     }
 
     void CancelEdit(User user)
     {
         Reset();
 
-        ordersGrid.CancelEditRow(user);
+        usersGrid.CancelEditRow(user);
 
         var orderEntry = context.Entry(user);
         if (orderEntry.State == EntityState.Modified)
@@ -114,19 +114,19 @@
 
             context.SaveChanges();
 
-            await ordersGrid.Reload();
+            await usersGrid.Reload();
         }
         else
         {
-            ordersGrid.CancelEditRow(user);
-            await ordersGrid.Reload();
+            usersGrid.CancelEditRow(user);
+            await usersGrid.Reload();
         }
     }
 
     async Task InsertRow()
     {
         userToInsert = new User();
-        await ordersGrid.InsertRow(userToInsert);
+        await usersGrid.InsertRow(userToInsert);
     }
 
     void OnCreateRow(User user)
