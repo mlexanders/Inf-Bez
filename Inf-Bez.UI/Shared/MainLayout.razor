@@ -32,12 +32,12 @@
             <RadzenText Text="Inf-Bez-Module" TextStyle="Radzen.Blazor.TextStyle.Subtitle1" class="rz-mb-0" style="color: var(--rz-sidebar-color);" />
         </RadzenStack>
         <RadzenPanelMenu>
-            <RadzenPanelMenuItem Text="Home" Path="" />
-            <AuthorizeView>
-                <RadzenPanelMenuItem Text="Logout" Path="/logout"></RadzenPanelMenuItem>
-            </AuthorizeView>
+            <RadzenPanelMenuItem Icon="home" Text="Home" Path="" />
             <AuthorizeView Roles="Admin">
-                <RadzenPanelMenuItem Text="Users" Path="/userList"></RadzenPanelMenuItem>
+                <RadzenPanelMenuItem Icon="fingerprint" IconColor="@Colors.Secondary" Text="Users" Path="/userList"></RadzenPanelMenuItem>
+            </AuthorizeView>
+            <AuthorizeView>
+                <RadzenPanelMenuItem Icon="highlight_off" IconColor="@Colors.DangerDark" Text="Logout" Path="/logout"></RadzenPanelMenuItem>
             </AuthorizeView>
         </RadzenPanelMenu>
         <RadzenStack AlignItems="Radzen.AlignItems.Center" Gap="0" class="rz-py-4 rz-py-lg-6" Style="padding: var(--rz-panel-menu-item-padding);">
