@@ -1,80 +1,108 @@
 ﻿@page "/"
-@attribute [Authorize]
+@using InfBez.Ui.Services
 @using Radzen
 @using Microsoft.JSInterop
 @using System.Text;
 @inject IJSRuntime JSRuntime
+@inject AuthService AuthService
+@attribute [Authorize]
+
 
 <PageTitle>Index</PageTitle>
 <RadzenRow Gap="5" RowGap="5">
     <RadzenColumn Size="12">
-        <RadzenHtmlEditor @bind-Value=@htmlValue style="height: 300px;" UploadUrl="upload/image" />
+        <RadzenHtmlEditor Input=@(() => isChanged = true) @bind-Value=@content style="height: 300px;" UploadUrl="upload/image" />
         <RadzenCard>
-            <RadzenButton Text="Save" Click=@SaveFile></RadzenButton>
-            @fileContent
-            <InputFile OnChange="LoadFiles" />
-            @* <RadzenFileInput TValue="IBrowserFile" @bind-FileSize=@fileSize Change=@(args => OnChange(args)) @bind-FileName=@_fileName/> *@
-            </RadzenCard>
+
+            @if (isOpened)
+            {
+                <RadzenButton Disabled=@(!isChanged) Text="Save" Click=@SaveFile></RadzenButton>
+            }
+            else
+            {
+                <RadzenButton Text="Create" Click=@CreateFile></RadzenButton>
+            }
+
+            <div class="rz-fileupload">
+                <div class="rz-fileupload-buttonbar"> 
+                    <span class="rz-fileupload-choose rz-button rz-secondary" tabindex="0">
+                        <InputFile class="rz-fileupload-choose rz-button rz-secondary" OnChange=@OnChangeFile></InputFile>
+                        <span class="rz-button-text">Choose</span>
+                    </span>
+                </div>
+            </div> 
+
+        </RadzenCard>
     </RadzenColumn>
 </RadzenRow>
 
 
 @code {
-    string htmlValue = "<h1>Hello World!</h1>";
-    private string fileContent = "";
-    private string _fileName;
-    private long? fileSize;
+    private string content = "<h1>Hello World!</h1>";
+    private string? fileName;
+    private bool isOpened = false;
+    private bool isChanged = false;
 
-    private async Task OnChange(IBrowserFile value)
-    {
-
-        using (FileStream fstream = File.OpenRead($"C:\\Users\\Sainz\\Downloads\\{_fileName}"))
+    private string? _folder;
+    private string Folder {
+        get
         {
-            byte[] buffer = new byte[fstream.Length];
-            await fstream.ReadAsync(buffer, 0, buffer.Length);
-            htmlValue = Encoding.Default.GetString(buffer);
+            if (string.IsNullOrEmpty(_folder))
+            {
+                _folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+            }
+            return _folder;
         }
-
-        Console.WriteLine($"Value changed to {value}");
-    }
-
-    private async Task Open()
-    {
-    //
     }
 
     private async Task SaveFile()
     {
-        try
+        var filePath = Path.Combine(Folder, fileName ?? await GenerateFileName());
+
+        using (FileStream fstream = new FileStream(filePath, FileMode.OpenOrCreate))
         {
-            string text = htmlValue;
-
-            string fileName = await JSRuntime.InvokeAsync<string>("prompt", "Введите имя файла");
-
-            if (!string.IsNullOrEmpty(fileName))
-            {
-                string filePath = fileName + ".txt";
-
-                await JSRuntime.InvokeVoidAsync("saveTextAsFile", filePath, text);
-            }
+            var buffer = Encoding.UTF8.GetBytes(content);
+            await fstream.WriteAsync(buffer);
+            fstream.Close();
         }
-        catch (Exception ex) { }
+        isChanged = false;
     }
 
-    private async void LoadFiles(InputFileChangeEventArgs e)
+    private async Task CreateFile()
     {
-        var stream = e.File.OpenReadStream();
-        StreamReader reader = new StreamReader(stream);
-        fileContent = reader.ReadToEnd();
-        StateHasChanged();
+        fileName = await GenerateFileName();
+        var filePath = Path.Combine(Folder, fileName);
+
+        using (FileStream fstream = new FileStream(filePath, FileMode.OpenOrCreate))
+        {
+            var buffer = Encoding.UTF8.GetBytes(content);
+            await fstream.WriteAsync(buffer);
+            fstream.Close();
+        }
+        isChanged = false;
+        isOpened = true;
+
+        content = "";
     }
 
-    private async Task HandleFileChange(InputFileChangeEventArgs e)
+    private async Task OnChangeFile(InputFileChangeEventArgs e)
     {
-        var file = e.File;
-        var buffer = new byte[file.Size];
-        await file.OpenReadStream().ReadAsync(buffer);
-        fileContent = Encoding.UTF8.GetString(buffer);
-        _fileName = file.Name;
+        fileName = e.File.Name;
+
+        using (var fstream = e.File.OpenReadStream())
+        {
+            byte[] buffer = new byte[fstream.Length];
+            await fstream.ReadAsync(buffer, 0, buffer.Length);
+            content = Encoding.UTF8.GetString(buffer);
+            fstream.Close();
+        }
+        isChanged = false;
+        isOpened = true;
+    }
+
+    private async Task<string> GenerateFileName()
+    {
+        var user = await AuthService.GetCurrentUser();
+        return $"{user.Name}-{DateTime.Now.ToString("dd-MM-yyyy-hh-mm-ss")}";
     }
 }

@@ -1,15 +1,4 @@
-﻿window.scrollToElementId = (elementId) => {
-    console.info('scrolling to element', elementId);
-    var element = document.getElementById(elementId);
-    if (!element) {
-        console.warn('element was not found', elementId);
-        return false;
-    }
-    element.scrollIntoView({ block: "center", behavior: "smooth" });
-    return true;
-}
-
-window.WriteCookie = {
+﻿window.WriteCookie = {
 
     WriteCookie: function (name, value, days) {
 
@@ -41,27 +30,4 @@ window.ReadCookie = {
         }
         return "";
     }
-}
-$("body").on("click", '[data-toggle="collapse"]', function (e) {
-    if ($($(this).data('target')).hasClass('collapsing'))
-        return false;
-});
-window.expanderMethods = {
-    toggle: function (id) {
-        $(`#${id}`).collapse('toggle');
-    }
-};
-
-
-function saveTextAsFile(filePath, text) {
-    const element = document.createElement('a');
-    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-    element.setAttribute('download', filePath);
-
-    element.style.display = 'none';
-    document.body.appendChild(element);
-
-    element.click();
-
-    document.body.removeChild(element);
 }
