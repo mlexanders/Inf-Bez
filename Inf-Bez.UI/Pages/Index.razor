@@ -5,6 +5,7 @@
 @using System.Text;
 @inject IJSRuntime JSRuntime
 @inject AuthService AuthService
+@inject NotificationService NotificationService
 @attribute [Authorize]
 
 
@@ -55,6 +56,30 @@
         }
     }
 
+    private NotificationMessage saveFileMsg = new()
+        {
+            Severity = NotificationSeverity.Success,
+            Summary = "Success",
+            Detail = $"File is saved",
+            Duration = 5000
+        };
+
+    private NotificationMessage createdFileMsg = new()
+        {
+            Severity = NotificationSeverity.Success,
+            Summary = "Success",
+            Detail = $"File was created",
+            Duration = 5000
+        };
+
+    private NotificationMessage openedFileMsg = new()
+        {
+            Severity = NotificationSeverity.Success,
+            Summary = "Success",
+            Detail = $"File was opened",
+            Duration = 5000
+        };
+
     private async Task SaveFile()
     {
         var filePath = Path.Combine(Folder, fileName ?? await GenerateFileName());
@@ -66,6 +91,7 @@
             fstream.Close();
         }
         isChanged = false;
+        NotificationService.Notify(saveFileMsg);
     }
 
     private async Task CreateFile()
@@ -83,6 +109,7 @@
         isOpened = true;
 
         content = "";
+        NotificationService.Notify(createdFileMsg);
     }
 
     private async Task OnChangeFile(InputFileChangeEventArgs e)
@@ -98,6 +125,7 @@
         }
         isChanged = false;
         isOpened = true;
+        NotificationService.Notify(openedFileMsg);
     }
 
     private async Task<string> GenerateFileName()
