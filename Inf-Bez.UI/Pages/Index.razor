@@ -12,28 +12,35 @@
 <PageTitle>Index</PageTitle>
 <RadzenRow Gap="5" RowGap="5">
     <RadzenColumn Size="12">
-        <RadzenHtmlEditor Input=@(() => isChanged = true) @bind-Value=@content style="height: 300px;" UploadUrl="upload/image" />
-        <RadzenCard>
+        <AuthorizeView Roles="User">
+            ////
+        </AuthorizeView>
 
-            @if (isOpened)
-            {
-                <RadzenButton Disabled=@(!isChanged) Text="Save" Click=@SaveFile></RadzenButton>
-            }
-            else
-            {
-                <RadzenButton Text="Create" Click=@CreateFile></RadzenButton>
-            }
+        <AuthorizeView Roles="Admin">
+            <RadzenHtmlEditor Input=@(() => isChanged = true) @bind-Value=@content style="height: 300px;" UploadUrl="upload/image" />
+            <RadzenCard>
 
-            <div class="rz-fileupload">
-                <div class="rz-fileupload-buttonbar"> 
-                    <span class="rz-fileupload-choose rz-button rz-secondary" tabindex="0">
-                        <InputFile class="rz-fileupload-choose rz-button rz-secondary" OnChange=@OnChangeFile></InputFile>
-                        <span class="rz-button-text">Choose</span>
-                    </span>
+                @if (isOpened)
+                {
+                    <RadzenButton Disabled=@(!isChanged) Text="Save" Click=@SaveFile></RadzenButton>
+                }
+                else
+                {
+                    <RadzenButton Text="Create" Click=@CreateFile></RadzenButton>
+                }
+
+                <div class="rz-fileupload">
+                    <div class="rz-fileupload-buttonbar">
+                        <span class="rz-fileupload-choose rz-button rz-secondary" tabindex="0">
+                            <InputFile class="rz-fileupload-choose rz-button rz-secondary" OnChange=@OnChangeFile></InputFile>
+                            <span class="rz-button-text">Choose</span>
+                        </span>
+                    </div>
                 </div>
-            </div> 
 
-        </RadzenCard>
+            </RadzenCard>
+        </AuthorizeView>
+        
     </RadzenColumn>
 </RadzenRow>
 

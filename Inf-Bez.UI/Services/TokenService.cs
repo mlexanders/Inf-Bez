@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components.Authorization;
+﻿using InfBez.Ui.Models;
+using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 
 namespace InfBez.Ui.Services
@@ -26,10 +27,12 @@ namespace InfBez.Ui.Services
             var token = await cookieService.GetCookies("token");
             if (string.IsNullOrWhiteSpace(token) || !await authService.CheckToken(token)) return GetStateAnonymous();
 
+            var user = await authService.GetCurrentUser();
+
             var claims = new List<Claim>()
             {
                 new Claim(ClaimTypes.Authentication, token),
-                new Claim(ClaimTypes.Role, "User")
+                new Claim(ClaimTypes.Role, user.Role is Role.Admin ? "Admin" : "User")
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, "Token");
