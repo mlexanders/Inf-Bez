@@ -1,4 +1,5 @@
 ﻿using InfBez.Ui.Interfaces;
+using InfBez.Ui.Repositories;
 using InfBez.Ui.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,8 @@ namespace InfBez.Ui
         {
             services.AddDbContext<AppDbContext>(o => o.UseSqlServer("Server=localhost;Database=infBez;Trusted_Connection=True;TrustServerCertificate=True;Integrated Security=true;Encrypt=false"));
             services.AddScoped<UsersRepository>();
+            services.AddScoped<AttachedFilesRepository>();
+            services.AddScoped<FileChecker>();
 
             services.AddScoped<CookieService>();
             services.AddScoped<TokenService>();
