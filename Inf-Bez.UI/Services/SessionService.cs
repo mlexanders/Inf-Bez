@@ -44,7 +44,8 @@ namespace InfBez.Ui.Services
     }
 
 
-    public class FailedSigInService   {
+    public class FailedSigInService
+    {
         public Dictionary<int, int> Signins { get; set; } = new();
 
         public async Task Inc(int userId)

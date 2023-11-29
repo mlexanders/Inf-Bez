@@ -51,7 +51,7 @@ namespace InfBez.Ui.Services
 
                 return true; // Пароли совпадают
             }
-            catch 
+            catch
             {
                 return false;
             }
