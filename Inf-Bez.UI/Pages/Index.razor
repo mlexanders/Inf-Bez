@@ -109,8 +109,23 @@
             fstream.Close();
         }
         isChanged = false;
+        try
+        {
+            await FileChecker.OnSaveFile(filePath);
+        }
+        catch (Exception ex)
+        {
+            var errorMsg = new NotificationMessage()
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = "Erorr",
+                    Detail = ex.Message,
+                    Duration = 7000
+                };
+            NotificationService.Notify(errorMsg);
+            return;
+        }
 
-        await FileChecker.OnSaveFile(filePath);
         NotificationService.Notify(saveFileMsg);
     }
 
@@ -148,7 +163,7 @@
             {
                 Severity = NotificationSeverity.Error,
                 Summary = "Erorr",
-                Detail = $"File don't opened",
+                Detail = ex.Message,
                 Duration = 7000
             };
             NotificationService.Notify(errorMsg);
