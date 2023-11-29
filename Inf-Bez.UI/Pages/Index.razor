@@ -6,6 +6,7 @@
 @inject IJSRuntime JSRuntime
 @inject AuthService AuthService
 @inject NotificationService NotificationService
+@inject FileChecker FileChecker
 @attribute [Authorize]
 
 
@@ -74,28 +75,28 @@
     }
 
     private NotificationMessage saveFileMsg = new()
-        {
-            Severity = NotificationSeverity.Success,
-            Summary = "Success",
-            Detail = $"File is saved",
-            Duration = 5000
-        };
+    {
+        Severity = NotificationSeverity.Success,
+        Summary = "Success",
+        Detail = $"File is saved",
+        Duration = 5000
+    };
 
     private NotificationMessage createdFileMsg = new()
-        {
-            Severity = NotificationSeverity.Success,
-            Summary = "Success",
-            Detail = $"File was created",
-            Duration = 5000
-        };
+    {
+        Severity = NotificationSeverity.Success,
+        Summary = "Success",
+        Detail = $"File was created",
+        Duration = 5000
+    };
 
     private NotificationMessage openedFileMsg = new()
-        {
-            Severity = NotificationSeverity.Success,
-            Summary = "Success",
-            Detail = $"File was opened",
-            Duration = 5000
-        };
+    {
+        Severity = NotificationSeverity.Success,
+        Summary = "Success",
+        Detail = $"File was opened",
+        Duration = 5000
+    };
 
     private async Task SaveFile()
     {
@@ -108,6 +109,8 @@
             fstream.Close();
         }
         isChanged = false;
+
+        await FileChecker.OnSaveFile(filePath);
         NotificationService.Notify(saveFileMsg);
     }
 
@@ -125,6 +128,8 @@
         isChanged = false;
         isOpened = true;
 
+        await FileChecker.OnCreateFile(filePath);
+
         content = "";
         NotificationService.Notify(createdFileMsg);
     }
@@ -133,6 +138,22 @@
     {
         fileName = e.File.Name;
 
+        try
+        {
+            await FileChecker.Check(Path.Combine(Folder, fileName));
+        }
+        catch (Exception ex)
+        {
+            var errorMsg = new NotificationMessage()
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Erorr",
+                Detail = $"File don't opened",
+                Duration = 7000
+            };
+            NotificationService.Notify(errorMsg);
+            return;
+        }
         using (var fstream = e.File.OpenReadStream())
         {
             byte[] buffer = new byte[fstream.Length];
@@ -148,6 +169,6 @@
     private async Task<string> GenerateFileName()
     {
         var user = await AuthService.GetCurrentUser();
-        return $"{user.Name}-{DateTime.Now.ToString("dd-MM-yyyy-hh-mm-ss")}";
+        return $"{user.Name}-{DateTime.Now.ToString("dd-MM-yyyy-hh-mm-ss")}.secret";
     }
 }
