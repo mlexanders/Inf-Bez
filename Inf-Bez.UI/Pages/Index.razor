@@ -13,7 +13,17 @@
 <RadzenRow Gap="5" RowGap="5">
     <RadzenColumn Size="12">
         <AuthorizeView Roles="User">
-            ////
+            <RadzenCard>
+                <RadzenHtmlEditor Disabled=true Input=@(() => isChanged = true) @bind-Value=@content style="height: 300px;" UploadUrl="upload/image" />
+            </RadzenCard>
+            <div class="rz-fileupload">
+                <div class="rz-fileupload-buttonbar">
+                    <span class="rz-fileupload-choose rz-button rz-secondary" tabindex="0">
+                        <InputFile class="rz-fileupload-choose rz-button rz-secondary" OnChange=@OnChangeFile></InputFile>
+                        <span class="rz-button-text">Choose</span>
+                    </span>
+                </div>
+            </div>
         </AuthorizeView>
 
         <AuthorizeView Roles="Admin">
