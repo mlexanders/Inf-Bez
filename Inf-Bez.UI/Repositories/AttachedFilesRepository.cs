@@ -20,7 +20,7 @@ namespace InfBez.Ui.Repositories
 
         public async Task<AttachedFile?> FindByPath(string path)
         {
-            return await dbSet.FirstOrDefaultAsync(f => f.FullPath == path);
+            return await dbSet.AsNoTracking().FirstOrDefaultAsync(f => f.FullPath == path);
         }
     }
 }

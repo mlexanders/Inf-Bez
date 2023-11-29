@@ -12,8 +12,8 @@ namespace InfBez.Ui
         public static void RegistrateCommonServices(IServiceCollection services)
         {
             services.AddDbContext<AppDbContext>(o => o.UseSqlServer("Server=localhost;Database=infBez;Trusted_Connection=True;TrustServerCertificate=True;Integrated Security=true;Encrypt=false"));
-            services.AddScoped<UsersRepository>();
-            services.AddScoped<AttachedFilesRepository>();
+            services.AddTransient<UsersRepository>();
+            services.AddTransient<AttachedFilesRepository>();
             services.AddScoped<FileChecker>();
 
             services.AddScoped<CookieService>();

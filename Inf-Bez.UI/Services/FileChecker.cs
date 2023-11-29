@@ -1,5 +1,7 @@
 ﻿using InfBez.Ui.Exceptions;
 using InfBez.Ui.Repositories;
+using System.IO;
+using System.Security.Cryptography;
 
 namespace InfBez.Ui.Services
 {
@@ -19,7 +21,17 @@ namespace InfBez.Ui.Services
 
             var file = await repository.FindByPath(fileInfo.FullName) ?? throw new FileNotValidException("File not found");
 
-            if (file.LastAccessTime != fileInfo.LastAccessTime) throw new FileNotValidException("File has been modified from outside");
+            var hash = "";
+            using (var md5 = MD5.Create())
+            {
+                using (var stream = File.OpenRead(path))
+                {
+                    hash = BitConverter.ToString(md5.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
+                }
+            }
+
+            if (file.LastWriteTime != fileInfo.LastWriteTime ) throw new FileNotValidException("File has been modified from outside");
+            if (hash != file.Hash) throw new FileNotValidException("Hash not valid");
             return true;
         }
 
@@ -30,8 +42,15 @@ namespace InfBez.Ui.Services
 
             if (!fileInfo.Exists || fileModel is null) throw new FileNotValidException("File not found");
 
-            fileModel.LastAccessTime = fileInfo.LastAccessTime;
+            fileModel.LastWriteTime = fileInfo.LastWriteTime;
             fileModel.CreationTime = fileInfo.CreationTime;
+            using (var md5 = MD5.Create())
+            {
+                using (var stream = File.OpenRead(fullPath))
+                {
+                    fileModel.Hash = BitConverter.ToString(md5.ComputeHash(stream)).Replace("-", "").ToLowerInvariant(); 
+                }
+            }
 
             await repository.Update(fileModel);
         }
@@ -49,6 +68,13 @@ namespace InfBez.Ui.Services
             }
 
             fileModel = new(fileInfo);
+            using (var md5 = MD5.Create())
+            {
+                using (var stream = File.OpenRead(fullPath))
+                {
+                    fileModel.Hash = BitConverter.ToString(md5.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
+                }
+            }
             await repository.Create(fileModel);
         }
     }

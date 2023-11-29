@@ -6,18 +6,16 @@ namespace InfBez.Ui.Models
     {
         public string FullPath { get; set; } = null!;
         public DateTime CreationTime { get; set; }
-        public DateTime LastAccessTime { get; set; }
+        public DateTime LastWriteTime { get; set; }
+        public string Hash { get; set; }
 
         public AttachedFile(FileInfo fileInfo)
         {
             CreationTime = fileInfo.CreationTime;
-            LastAccessTime = fileInfo.LastAccessTime;
+            LastWriteTime = fileInfo.LastAccessTime;
             FullPath = fileInfo.FullName;
         }
 
-        public AttachedFile()
-        {
-
-        }
+        public AttachedFile() { }
     }
 }
