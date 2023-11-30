@@ -11,10 +11,10 @@ namespace InfBez.Ui
     {
         public static void RegistrateCommonServices(IServiceCollection services)
         {
-            services.AddDbContext<AppDbContext>(o => o.UseSqlServer("Server=localhost;Database=infBez;Trusted_Connection=True;TrustServerCertificate=True;Integrated Security=true;Encrypt=false"));
+            services.AddDbContext<AppDbContext>(o => o.UseSqlServer("Server=localhost;Database=infBez;Trusted_Connection=True;TrustServerCertificate=True;Integrated Security=true;Encrypt=false"), ServiceLifetime.Transient);
             services.AddTransient<UsersRepository>();
             services.AddTransient<AttachedFilesRepository>();
-            services.AddScoped<FileChecker>();
+            services.AddTransient<FileChecker>();
 
             services.AddScoped<CookieService>();
             services.AddScoped<TokenService>();
