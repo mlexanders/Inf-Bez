@@ -77,7 +77,7 @@
                 Console.WriteLine($"Архив успешно создан: {archivePath}");
                 ProcessFile(archivePath, pass, true);
                 File.Delete(GetZipPath(archivePath));
-                File.Delete(GetBasePath(filePath)); ///!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                File.Delete(GetBasePath(filePath));
             }
             catch (Exception ex)
             {
@@ -100,7 +100,6 @@
             try
             {
                 ProcessFile(a, pass, false);
-                // Определяем путь к извлекаемому файлу, убирая расширение
                 string extractedFilePath = GetBasePath(archivePath);
 
                 // Извлекаем содержимое архива
@@ -172,6 +171,4 @@
             }
         }
     }
-
-
 }

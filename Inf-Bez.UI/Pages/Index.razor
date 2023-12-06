@@ -8,6 +8,7 @@
 @inject NotificationService NotificationService
 @inject FileChecker FileChecker
 @inject ArchiveManager ArchiveManager
+@inject FileManager FileManager
 @attribute [Authorize]
 
 
@@ -59,20 +60,74 @@
 
 @code {
     private string content = "";
-    private string? fileName;
     private bool isOpened = false;
     private bool isChanged = false;
 
-    private string? _folder;
-    private string Folder {
-        get
+    private async Task SaveFile()
+    {
+        try
         {
-            if (string.IsNullOrEmpty(_folder))
-            {
-                _folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
-            }
-            return _folder;
+            await FileManager.Save(content);
         }
+        catch (Exception ex)
+        {
+            NotificateError(ex);
+            return;
+        }
+        isChanged = false;
+        NotificationService.Notify(saveFileMsg);
+    }
+
+    private async Task CreateFile()
+    {
+        try
+        {
+            await FileManager.CreateFile(content);
+        }
+        catch (Exception ex)
+        {
+            NotificateError(ex);
+            return;
+        }
+        isChanged = false;
+        isOpened = true;
+
+        NotificationService.Notify(createdFileMsg);
+    }
+
+    private async Task OnChangeFile(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            content = await FileManager.Change(e.File.Name);
+        }
+        catch (Exception ex)
+        {
+            NotificateError(ex);
+            return;
+        }
+
+        isChanged = false;
+        isOpened = true;
+        NotificationService.Notify(openedFileMsg);
+    }
+
+    private async Task<string> GenerateFileName()
+    {
+        var user = await AuthService.GetCurrentUser();
+        return $"{user.Name}-{DateTime.Now.ToString("dd-MM-yyyy-hh-mm-ss")}.html";
+    }
+
+    private void NotificateError(Exception ex)
+    {
+        NotificationService.Notify(
+        new NotificationMessage()
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Erorr",
+                Detail = ex.Message,
+                Duration = 7000
+            });
     }
 
     private NotificationMessage saveFileMsg = new()
@@ -98,107 +153,4 @@
         Detail = $"File was opened",
         Duration = 5000
     };
-
-    private async Task SaveFile()
-    {
-        var filePath = Path.Combine(Folder, fileName ?? await GenerateFileName());
-        ArchiveManager.ExtractFromArchive(filePath);
-
-        using (FileStream fstream = new FileStream(ArchiveManager.GetBasePath(filePath), FileMode.OpenOrCreate))
-        {
-            var buffer = Encoding.UTF8.GetBytes(content);
-            await fstream.WriteAsync(buffer);
-            fstream.Close();
-        }
-        isChanged = false;
-        try
-        {
-            ArchiveManager.CreateArchive(filePath);
-            await FileChecker.OnSaveFile(ArchiveManager.GetEncryptionPath(filePath));
-        }
-        catch (Exception ex)
-        {
-            var errorMsg = new NotificationMessage()
-                {
-                    Severity = NotificationSeverity.Error,
-                    Summary = "Erorr",
-                    Detail = ex.Message,
-                    Duration = 7000
-                };
-            NotificationService.Notify(errorMsg);
-            return;
-        }
-
-        NotificationService.Notify(saveFileMsg);
-    }
-
-    private async Task CreateFile()
-    {
-        fileName = await GenerateFileName();
-        var filePath = Path.Combine(Folder, fileName);
-
-        using (FileStream fstream = new FileStream(filePath, FileMode.OpenOrCreate))
-        {
-            var buffer = Encoding.UTF8.GetBytes(content);
-            await fstream.WriteAsync(buffer);
-            fstream.Close();
-        }
-        isChanged = false;
-        isOpened = true;
-
-        ArchiveManager.CreateArchive(filePath);
-        await FileChecker.OnCreateFile(ArchiveManager.GetEncryptionPath(filePath));
-
-        content = "";
-        NotificationService.Notify(createdFileMsg);
-    }
-
-    private async Task OnChangeFile(InputFileChangeEventArgs e)
-    {
-        fileName = e.File.Name;
-        var filePath = Path.Combine(Folder, fileName);
-        try
-        {
-            await FileChecker.Check(ArchiveManager.GetEncryptionPath(filePath)); //
-        }
-        catch (Exception ex)
-        {
-            var errorMsg = new NotificationMessage()
-            {
-                Severity = NotificationSeverity.Error,
-                Summary = "Erorr",
-                Detail = ex.Message,
-                Duration = 7000
-            };
-            NotificationService.Notify(errorMsg);
-            return;
-        }
-
-        ArchiveManager.ExtractFromArchive(filePath);
-        using (FileStream fstream = new FileStream(ArchiveManager.GetBasePath(filePath), FileMode.OpenOrCreate))
-        {
-            var buffer = Encoding.UTF8.GetBytes(content);
-            await fstream.ReadAsync(buffer);
-            content = Encoding.UTF8.GetString(buffer);
-            fstream.Close();
-        }
-        ArchiveManager.CreateArchive(filePath);
-        await FileChecker.OnSaveFile(ArchiveManager.GetEncryptionPath(filePath)); //
-        // using (var fstream = e.File.OpenReadStream())
-        // {
-        //     byte[] buffer = new byte[fstream.Length];
-        //     await fstream.ReadAsync(buffer, 0, buffer.Length);
-        //     content = Encoding.UTF8.GetString(buffer);
-        //     fstream.Close();
-        // }
-        isChanged = false;
-        isOpened = true;
-        NotificationService.Notify(openedFileMsg);
-    }
-
-    private async Task<string> GenerateFileName()
-    {
-        var user = await AuthService.GetCurrentUser();
-        return $"{user.Name}-{DateTime.Now.ToString("dd-MM-yyyy-hh-mm-ss")}.html";
-    }
 }

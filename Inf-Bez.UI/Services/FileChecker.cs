@@ -34,7 +34,7 @@ namespace InfBez.Ui.Services
             return true;
         }
 
-        public async Task OnSaveFile(string fullPath)
+        public async Task OnUpdateFile(string fullPath)
         {
             var fileModel = await repository.ReadFirst(f => f.FullPath == fullPath); //FindByPath(fullPath);
             var fileInfo = new FileInfo(fullPath);
@@ -60,10 +60,10 @@ namespace InfBez.Ui.Services
             var fileModel = await repository.FindByPath(fullPath);
             var fileInfo = new FileInfo(fullPath);
 
-            if (!fileInfo.Exists) throw new FileNotValidException("File not found");
+            if (!fileInfo.Exists) throw new FileNotValidException("File not found(File Checker)");
             if (fileModel != null)
             {
-                await OnSaveFile(fullPath);
+                await OnUpdateFile(fullPath);
                 return;
             }
 

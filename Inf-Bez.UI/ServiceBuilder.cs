@@ -17,6 +17,7 @@ namespace InfBez.Ui
             services.AddTransient<FileChecker>();
 
             services.AddScoped<ArchiveManager>(sp => new(".zip", ".encryption", ".html"));
+            services.AddScoped<FileManager>();
 
             services.AddScoped<CookieService>();
             services.AddScoped<TokenService>();
