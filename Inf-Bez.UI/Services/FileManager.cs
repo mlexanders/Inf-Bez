@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using InfBez.Ui.Difinitions;
+using System.Text;
 
 namespace InfBez.Ui.Services
 {
@@ -89,7 +90,7 @@ namespace InfBez.Ui.Services
             {
                 if (string.IsNullOrEmpty(_folder))
                 {
-                    _folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads", "inf-bez");
+                    _folder = AppSettings.BasePath;
                 }
                 return _folder;
             }

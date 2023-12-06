@@ -1,4 +1,6 @@
 ﻿@page "/"
+@using InfBez.Ui.Components
+@using InfBez.Ui.Difinitions
 @using InfBez.Ui.Services
 @using Radzen
 @using Microsoft.JSInterop
@@ -16,55 +18,86 @@
             <RadzenCard>
                 <RadzenHtmlEditor Disabled=true Input=@(() => isChanged = true) @bind-Value=@content style="height: 300px;" UploadUrl="upload/image" />
             </RadzenCard>
-            <div class="rz-fileupload">
-                <div class="rz-fileupload-buttonbar">
-                    <span class="rz-fileupload-choose rz-button rz-secondary" tabindex="0">
-                        <InputFile class="rz-fileupload-choose rz-button rz-secondary" OnChange=@OnChangeFile>  @FileManager.CurrentFileName </InputFile>
-                        <span class="rz-button-text">Choose</span>
-                    </span>
-                </div>
-            </div>
         </AuthorizeView>
 
         <AuthorizeView Roles="Admin">
-            <RadzenHtmlEditor Input=@(() => isChanged = true) @bind-Value=@content style="height: 300px;" UploadUrl="upload/image" />
-            <RadzenCard>
-
-                @if (isOpened)
-                {
-                    <RadzenButton Disabled=@(!isChanged) Text="Save" Click=@SaveFile></RadzenButton>
-                }
-                else
-                {
-                    <RadzenButton Text="Create" Click=@CreateFile></RadzenButton>
-                }
-
-                <div class="rz-fileupload">
-                    <div class="rz-fileupload-buttonbar">
-                        <span class="rz-fileupload-choose rz-button rz-secondary" tabindex="0">
-                            <InputFile class="rz-fileupload-choose rz-button rz-secondary" OnChange=@OnChangeFile> @FileManager.CurrentFileName</InputFile>
-                            <span class="rz-button-text">Choose</span>
-                        </span>
-                    </div>
-                </div>
-
-            </RadzenCard>
+             <RadzenCard>
+                <RadzenHtmlEditor Input=@(() => isChanged = true) @bind-Value=@content style="height: 300px;" UploadUrl="upload/image" />
+             </RadzenCard>
         </AuthorizeView>
-        
+
+
+        <RadzenStack class="m-2" Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
+            @if (isOpened)
+            {
+                <RadzenButton Disabled=@(!isChanged) Text="Save" Click=@SaveFile></RadzenButton>
+            }
+            else
+            {
+                <RadzenButton Text="Create" Click=@CreateFile></RadzenButton>
+            }
+            <RadzenButton Click="@ClearSelection" Text="Clear Selection" />
+            @if (SelectedFile?.Any() == true)
+            {
+                <div class="noselect" style="margin-left: 16px">
+                    Selected Employee: @SelectedFile[0].Name @SelectedFile[0].LastWriteTime
+                </div>
+            }
+        </RadzenStack>
+         <div class="noselect">
+
+            <RadzenDataGrid AllowFiltering="true" FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="5"
+                            AllowSorting="true" Data="@files" TItem="System.IO.FileInfo" ColumnWidth="200px"
+                            SelectionMode="DataGridSelectionMode.Single" @bind-Value=SelectedFile>
+                <Columns>
+                    <RadzenDataGridColumn TItem="System.IO.FileInfo" Property="Name" Title="Name" />
+                    <RadzenDataGridColumn TItem="System.IO.FileInfo" Property="LastWriteTime" Title="LastWriteTime" />
+                </Columns>
+            </RadzenDataGrid>
+         </div>
+
+
     </RadzenColumn>
 </RadzenRow>
 
 
-    @code {
-    private string content = "";
-    private bool isOpened = false;
-    private bool isChanged = false;
+@code {
+    private IEnumerable<System.IO.FileInfo> files;
+    private IList<System.IO.FileInfo> _selectedFile;
+    private IList<System.IO.FileInfo> SelectedFile
+    {
+        get
+        {
+            return _selectedFile;
+        }
+        set
+        {
+            _selectedFile = value;
+            if (value is null) return;
+            OnChangeFile(value[0].Name);
+        }
+
+    }
+
+    void ClearSelection()
+    {
+        SelectedFile = null;
+        isOpened = false;
+        isChanged = false;
+        content = "";
+    }
 
     protected override async Task OnInitializedAsync()
     {
+        files = new DirectoryInfo(AppSettings.BasePath).GetFiles();
+
         var user = await AuthService.GetCurrentUser();
         FileManager.SetTemplateToFileName(user.Name);
     }
+
+    private string content = "";
+    private bool isOpened = false;
+    private bool isChanged = false;
 
     private async Task SaveFile()
     {
@@ -95,14 +128,15 @@
         isChanged = false;
         isOpened = true;
 
+        files = new DirectoryInfo(AppSettings.BasePath).GetFiles();
         NotificationService.Notify(createdFileMsg);
     }
 
-    private async Task OnChangeFile(InputFileChangeEventArgs e)
+    private async Task OnChangeFile(string fileName)
     {
         try
         {
-            content = await FileManager.Change(e.File.Name);
+            content = await FileManager.Change(fileName);
         }
         catch (Exception ex)
         {
@@ -113,6 +147,7 @@
         isChanged = false;
         isOpened = true;
         NotificationService.Notify(openedFileMsg);
+        StateHasChanged();
     }
 
     private void NotificateError(Exception ex)
@@ -132,7 +167,7 @@
         Severity = NotificationSeverity.Success,
         Summary = "Success",
             Detail = $"File is saved {FileManager.CurrentFileName}",
-        Duration = 9000
+        Duration = 7000
     };
 
     private NotificationMessage createdFileMsg => new()
@@ -140,7 +175,7 @@
         Severity = NotificationSeverity.Success,
         Summary = "Success",
         Detail = $"File was created {FileManager.CurrentFileName}",
-        Duration = 9000
+        Duration = 7000
     };
 
     private NotificationMessage openedFileMsg => new()
@@ -148,6 +183,6 @@
         Severity = NotificationSeverity.Success,
         Summary = "Success",
         Detail = $"File was opened {FileManager.CurrentFileName}",
-        Duration = 9000
+        Duration = 3400
     };
 }
