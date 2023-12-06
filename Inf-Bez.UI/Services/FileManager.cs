@@ -70,7 +70,14 @@ namespace InfBez.Ui.Services
         }
 
         public void SetTemplateToFileName(string templateName) => this.templateName = templateName.ToLower();
-
+        public string CurrentFileName
+        {
+            get
+            {
+                if (currentFilePath is null) return "";
+                else return Path.GetFileName(currentFilePath);
+            }
+        }
         private string FileName => $"{templateName}-{DateTime.Now:hh-mm-ss}.html";
         private string? currentFilePath;
         private string FilePath => currentFilePath ?? Path.Combine(Folder, FileName);

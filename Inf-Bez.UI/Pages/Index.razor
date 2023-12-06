@@ -6,13 +6,10 @@
 @inject IJSRuntime JSRuntime
 @inject AuthService AuthService
 @inject NotificationService NotificationService
-@inject FileChecker FileChecker
-@inject ArchiveManager ArchiveManager
 @inject FileManager FileManager
 @attribute [Authorize]
 
 
-<PageTitle>Index</PageTitle>
 <RadzenRow Gap="5" RowGap="5">
     <RadzenColumn Size="12">
         <AuthorizeView Roles="User">
@@ -22,7 +19,7 @@
             <div class="rz-fileupload">
                 <div class="rz-fileupload-buttonbar">
                     <span class="rz-fileupload-choose rz-button rz-secondary" tabindex="0">
-                        <InputFile class="rz-fileupload-choose rz-button rz-secondary" OnChange=@OnChangeFile></InputFile>
+                        <InputFile class="rz-fileupload-choose rz-button rz-secondary" OnChange=@OnChangeFile>  @FileManager.CurrentFileName </InputFile>
                         <span class="rz-button-text">Choose</span>
                     </span>
                 </div>
@@ -45,7 +42,7 @@
                 <div class="rz-fileupload">
                     <div class="rz-fileupload-buttonbar">
                         <span class="rz-fileupload-choose rz-button rz-secondary" tabindex="0">
-                            <InputFile class="rz-fileupload-choose rz-button rz-secondary" OnChange=@OnChangeFile></InputFile>
+                            <InputFile class="rz-fileupload-choose rz-button rz-secondary" OnChange=@OnChangeFile> @FileManager.CurrentFileName</InputFile>
                             <span class="rz-button-text">Choose</span>
                         </span>
                     </div>
@@ -58,10 +55,16 @@
 </RadzenRow>
 
 
-@code {
+    @code {
     private string content = "";
     private bool isOpened = false;
     private bool isChanged = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await AuthService.GetCurrentUser();
+        FileManager.SetTemplateToFileName(user.Name);
+    }
 
     private async Task SaveFile()
     {
@@ -112,12 +115,6 @@
         NotificationService.Notify(openedFileMsg);
     }
 
-    private async Task<string> GenerateFileName()
-    {
-        var user = await AuthService.GetCurrentUser();
-        return $"{user.Name}-{DateTime.Now.ToString("dd-MM-yyyy-hh-mm-ss")}.html";
-    }
-
     private void NotificateError(Exception ex)
     {
         NotificationService.Notify(
@@ -126,31 +123,31 @@
                 Severity = NotificationSeverity.Error,
                 Summary = "Erorr",
                 Detail = ex.Message,
-                Duration = 7000
+                Duration = 9000
             });
     }
 
-    private NotificationMessage saveFileMsg = new()
+    private NotificationMessage saveFileMsg => new()
     {
         Severity = NotificationSeverity.Success,
         Summary = "Success",
-        Detail = $"File is saved",
-        Duration = 5000
+            Detail = $"File is saved {FileManager.CurrentFileName}",
+        Duration = 9000
     };
 
-    private NotificationMessage createdFileMsg = new()
+    private NotificationMessage createdFileMsg => new()
     {
         Severity = NotificationSeverity.Success,
         Summary = "Success",
-        Detail = $"File was created",
-        Duration = 5000
+        Detail = $"File was created {FileManager.CurrentFileName}",
+        Duration = 9000
     };
 
-    private NotificationMessage openedFileMsg = new()
+    private NotificationMessage openedFileMsg => new()
     {
         Severity = NotificationSeverity.Success,
         Summary = "Success",
-        Detail = $"File was opened",
-        Duration = 5000
+        Detail = $"File was opened {FileManager.CurrentFileName}",
+        Duration = 9000
     };
 }
