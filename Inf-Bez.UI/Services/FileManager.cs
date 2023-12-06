@@ -21,13 +21,13 @@ namespace InfBez.Ui.Services
             currentFilePath ??= FilePath;
 
             // create html
-            using FileStream fstream = new(FilePath, FileMode.OpenOrCreate);
+            using FileStream fstream = new(archiveManager.GetBasePath(FilePath), FileMode.OpenOrCreate);
             var buffer = Encoding.UTF8.GetBytes(content ?? "");
             await fstream.WriteAsync(buffer);
             fstream.Close();
 
             // zipping and encryption
-            archiveManager.CreateArchive(FilePath);
+            archiveManager.CreateArchive(archiveManager.GetBasePath(FilePath));
 
             // save data in database
             if (isUpdate) await fileChecker.OnUpdateFile(archiveManager.GetEncryptionPath(FilePath));

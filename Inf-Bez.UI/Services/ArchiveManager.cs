@@ -42,12 +42,7 @@
 
             if (!file.Exists)
             {
-                using (FileStream fstream = new FileStream(filePath, FileMode.OpenOrCreate))
-                {
-                    var buffer = Encoding.UTF8.GetBytes("");
-                    fstream.Write(buffer);
-                    fstream.Close();
-                }
+                throw new Exception($"File not found(CreateArchive) {filePath}");
             }
 
             try
