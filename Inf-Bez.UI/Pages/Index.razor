@@ -6,14 +6,24 @@
 @inject IJSRuntime JSRuntime
 @inject AuthService AuthService
 @inject NotificationService NotificationService
+@inject FileManager FileManager
 @attribute [Authorize]
 
 
-<PageTitle>Index</PageTitle>
 <RadzenRow Gap="5" RowGap="5">
     <RadzenColumn Size="12">
         <AuthorizeView Roles="User">
-            ////
+            <RadzenCard>
+                <RadzenHtmlEditor Disabled=true Input=@(() => isChanged = true) @bind-Value=@content style="height: 300px;" UploadUrl="upload/image" />
+            </RadzenCard>
+            <div class="rz-fileupload">
+                <div class="rz-fileupload-buttonbar">
+                    <span class="rz-fileupload-choose rz-button rz-secondary" tabindex="0">
+                        <InputFile class="rz-fileupload-choose rz-button rz-secondary" OnChange=@OnChangeFile>  @FileManager.CurrentFileName </InputFile>
+                        <span class="rz-button-text">Choose</span>
+                    </span>
+                </div>
+            </div>
         </AuthorizeView>
 
         <AuthorizeView Roles="Admin">
@@ -32,7 +42,7 @@
                 <div class="rz-fileupload">
                     <div class="rz-fileupload-buttonbar">
                         <span class="rz-fileupload-choose rz-button rz-secondary" tabindex="0">
-                            <InputFile class="rz-fileupload-choose rz-button rz-secondary" OnChange=@OnChangeFile></InputFile>
+                            <InputFile class="rz-fileupload-choose rz-button rz-secondary" OnChange=@OnChangeFile> @FileManager.CurrentFileName</InputFile>
                             <span class="rz-button-text">Choose</span>
                         </span>
                     </div>
@@ -45,57 +55,27 @@
 </RadzenRow>
 
 
-@code {
-    private string content = "<h1>Hello World!</h1>";
-    private string? fileName;
+    @code {
+    private string content = "";
     private bool isOpened = false;
     private bool isChanged = false;
 
-    private string? _folder;
-    private string Folder {
-        get
-        {
-            if (string.IsNullOrEmpty(_folder))
-            {
-                _folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
-            }
-            return _folder;
-        }
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await AuthService.GetCurrentUser();
+        FileManager.SetTemplateToFileName(user.Name);
     }
-
-    private NotificationMessage saveFileMsg = new()
-        {
-            Severity = NotificationSeverity.Success,
-            Summary = "Success",
-            Detail = $"File is saved",
-            Duration = 5000
-        };
-
-    private NotificationMessage createdFileMsg = new()
-        {
-            Severity = NotificationSeverity.Success,
-            Summary = "Success",
-            Detail = $"File was created",
-            Duration = 5000
-        };
-
-    private NotificationMessage openedFileMsg = new()
-        {
-            Severity = NotificationSeverity.Success,
-            Summary = "Success",
-            Detail = $"File was opened",
-            Duration = 5000
-        };
 
     private async Task SaveFile()
     {
-        var filePath = Path.Combine(Folder, fileName ?? await GenerateFileName());
-
-        using (FileStream fstream = new FileStream(filePath, FileMode.OpenOrCreate))
+        try
         {
-            var buffer = Encoding.UTF8.GetBytes(content);
-            await fstream.WriteAsync(buffer);
-            fstream.Close();
+            await FileManager.Save(content);
+        }
+        catch (Exception ex)
+        {
+            NotificateError(ex);
+            return;
         }
         isChanged = false;
         NotificationService.Notify(saveFileMsg);
@@ -103,41 +83,71 @@
 
     private async Task CreateFile()
     {
-        fileName = await GenerateFileName();
-        var filePath = Path.Combine(Folder, fileName);
-
-        using (FileStream fstream = new FileStream(filePath, FileMode.OpenOrCreate))
+        try
         {
-            var buffer = Encoding.UTF8.GetBytes(content);
-            await fstream.WriteAsync(buffer);
-            fstream.Close();
+            await FileManager.CreateFile(content);
+        }
+        catch (Exception ex)
+        {
+            NotificateError(ex);
+            return;
         }
         isChanged = false;
         isOpened = true;
 
-        content = "";
         NotificationService.Notify(createdFileMsg);
     }
 
     private async Task OnChangeFile(InputFileChangeEventArgs e)
     {
-        fileName = e.File.Name;
-
-        using (var fstream = e.File.OpenReadStream())
+        try
         {
-            byte[] buffer = new byte[fstream.Length];
-            await fstream.ReadAsync(buffer, 0, buffer.Length);
-            content = Encoding.UTF8.GetString(buffer);
-            fstream.Close();
+            content = await FileManager.Change(e.File.Name);
         }
+        catch (Exception ex)
+        {
+            NotificateError(ex);
+            return;
+        }
+
         isChanged = false;
         isOpened = true;
         NotificationService.Notify(openedFileMsg);
     }
 
-    private async Task<string> GenerateFileName()
+    private void NotificateError(Exception ex)
     {
-        var user = await AuthService.GetCurrentUser();
-        return $"{user.Name}-{DateTime.Now.ToString("dd-MM-yyyy-hh-mm-ss")}";
+        NotificationService.Notify(
+        new NotificationMessage()
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Erorr",
+                Detail = ex.Message,
+                Duration = 9000
+            });
     }
+
+    private NotificationMessage saveFileMsg => new()
+    {
+        Severity = NotificationSeverity.Success,
+        Summary = "Success",
+            Detail = $"File is saved {FileManager.CurrentFileName}",
+        Duration = 9000
+    };
+
+    private NotificationMessage createdFileMsg => new()
+    {
+        Severity = NotificationSeverity.Success,
+        Summary = "Success",
+        Detail = $"File was created {FileManager.CurrentFileName}",
+        Duration = 9000
+    };
+
+    private NotificationMessage openedFileMsg => new()
+    {
+        Severity = NotificationSeverity.Success,
+        Summary = "Success",
+        Detail = $"File was opened {FileManager.CurrentFileName}",
+        Duration = 9000
+    };
 }

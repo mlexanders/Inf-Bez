@@ -1,5 +1,6 @@
 ﻿using InfBez.Ui.Interfaces;
 using InfBez.Ui.Models;
+using InfBez.Ui.Repositories;
 using InfBez.Ui.ViewModels;
 using System.Diagnostics;
 

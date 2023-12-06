@@ -10,20 +10,20 @@
     }
 </style>
 
-<RadzenDataGrid @ref="usersGrid" AllowAlternatingRows="false" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" EditMode="DataGridEditMode.Single"
+<RadzenDataGrid @ref="usersGrid" AllowAlternatingRows="false" AllowFiltering="true" AllowPaging="true" PageSize="10" AllowSorting="true" EditMode="DataGridEditMode.Single"
                 Data="@users" TItem="User" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" Sort="@Reset" Page="@Reset" Filter="@Reset" >
     <Columns>
-        <RadzenDataGridColumn TItem="User" Property="Id" Title="ID" Width="60px" Frozen="true" />
-        <RadzenDataGridColumn TItem="User" Property="User.Role" Title="Role" Width="200px">
+        <RadzenDataGridColumn TItem="User" Property="Id" Title="ID" Width="90px" Frozen="true" />
+        <RadzenDataGridColumn TItem="User" Property="User.Role" Title="Role" Width="220px">
             <EditTemplate Context="user">
                 <RadzenDropDown TValue="Role" @bind-Value="user.Role" Data="@Roles" Style="width:100%; display: block;" />
             </EditTemplate>
         </RadzenDataGridColumn>
 
-        <RadzenDataGridColumn TItem="User" Property="Name" Title="Name" Width="120px"/>
-        <RadzenDataGridColumn TItem="User" Property="Email" Title="Email" Width="120px" />
-        <RadzenDataGridColumn TItem="User" Property="Phone" Title="Phone" Width="120px" />
-        <RadzenDataGridColumn TItem="User" Property="Adress" Title="Adress" Width="120px" />
+        <RadzenDataGridColumn TItem="User" Property="Name" Title="Name" Width="160px"/>
+        <RadzenDataGridColumn TItem="User" Property="Email" Title="Email" Width="170px" />
+        <RadzenDataGridColumn TItem="User" Property="Phone" Title="Phone" Width="180px" />
+        <RadzenDataGridColumn TItem="User" Property="Adress" Title="Adress" Width="260px" />
 
         <RadzenDataGridColumn TItem="User" Context="user" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
             <Template Context="user">
