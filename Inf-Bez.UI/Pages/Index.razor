@@ -7,6 +7,7 @@
 @inject AuthService AuthService
 @inject NotificationService NotificationService
 @inject FileChecker FileChecker
+@inject ArchiveManager ArchiveManager
 @attribute [Authorize]
 
 
@@ -102,7 +103,7 @@
     {
         var filePath = Path.Combine(Folder, fileName ?? await GenerateFileName());
 
-        using (FileStream fstream = new FileStream(filePath, FileMode.OpenOrCreate))
+        using (FileStream fstream = new FileStream(ArchiveManager.GetBasePath(filePath), FileMode.OpenOrCreate))
         {
             var buffer = Encoding.UTF8.GetBytes(content);
             await fstream.WriteAsync(buffer);
@@ -111,7 +112,8 @@
         isChanged = false;
         try
         {
-            await FileChecker.OnSaveFile(filePath);
+            ArchiveManager.CreateArchive(filePath);
+            await FileChecker.OnSaveFile(ArchiveManager.GetEncryptionPath(filePath));
         }
         catch (Exception ex)
         {
@@ -143,7 +145,8 @@
         isChanged = false;
         isOpened = true;
 
-        await FileChecker.OnCreateFile(filePath);
+        ArchiveManager.CreateArchive(filePath);
+        await FileChecker.OnCreateFile(ArchiveManager.GetEncryptionPath(filePath));
 
         content = "";
         NotificationService.Notify(createdFileMsg);
@@ -152,10 +155,10 @@
     private async Task OnChangeFile(InputFileChangeEventArgs e)
     {
         fileName = e.File.Name;
-
+        var filePath = Path.Combine(Folder, fileName);
         try
         {
-            await FileChecker.Check(Path.Combine(Folder, fileName));
+            await FileChecker.Check(ArchiveManager.GetEncryptionPath(filePath)); //
         }
         catch (Exception ex)
         {
@@ -169,13 +172,23 @@
             NotificationService.Notify(errorMsg);
             return;
         }
-        using (var fstream = e.File.OpenReadStream())
+
+        ArchiveManager.ExtractFromArchive(filePath);
+        using (FileStream fstream = new FileStream(ArchiveManager.GetBasePath(filePath), FileMode.OpenOrCreate))
         {
-            byte[] buffer = new byte[fstream.Length];
-            await fstream.ReadAsync(buffer, 0, buffer.Length);
+            var buffer = Encoding.UTF8.GetBytes(content);
+            await fstream.ReadAsync(buffer);
             content = Encoding.UTF8.GetString(buffer);
             fstream.Close();
         }
+        ArchiveManager.CreateArchive(filePath);
+        // using (var fstream = e.File.OpenReadStream())
+        // {
+        //     byte[] buffer = new byte[fstream.Length];
+        //     await fstream.ReadAsync(buffer, 0, buffer.Length);
+        //     content = Encoding.UTF8.GetString(buffer);
+        //     fstream.Close();
+        // }
         isChanged = false;
         isOpened = true;
         NotificationService.Notify(openedFileMsg);
@@ -184,6 +197,6 @@
     private async Task<string> GenerateFileName()
     {
         var user = await AuthService.GetCurrentUser();
-        return $"{user.Name}-{DateTime.Now.ToString("dd-MM-yyyy-hh-mm-ss")}.secret";
+        return $"{user.Name}-{DateTime.Now.ToString("dd-MM-yyyy-hh-mm-ss")}.html";
     }
 }
