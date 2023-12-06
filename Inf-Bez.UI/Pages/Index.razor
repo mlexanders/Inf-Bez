@@ -58,7 +58,7 @@
 
 
 @code {
-    private string content = "<h1>Hello World!</h1>";
+    private string content = "";
     private string? fileName;
     private bool isOpened = false;
     private bool isChanged = false;
@@ -102,6 +102,7 @@
     private async Task SaveFile()
     {
         var filePath = Path.Combine(Folder, fileName ?? await GenerateFileName());
+        ArchiveManager.ExtractFromArchive(filePath);
 
         using (FileStream fstream = new FileStream(ArchiveManager.GetBasePath(filePath), FileMode.OpenOrCreate))
         {
@@ -182,6 +183,7 @@
             fstream.Close();
         }
         ArchiveManager.CreateArchive(filePath);
+        await FileChecker.OnSaveFile(ArchiveManager.GetEncryptionPath(filePath)); //
         // using (var fstream = e.File.OpenReadStream())
         // {
         //     byte[] buffer = new byte[fstream.Length];
