@@ -1,5 +1,4 @@
 ﻿using InfBez.Ui.Exceptions;
-using InfBez.Ui.Models;
 using InfBez.Ui.Repositories;
 using System.Security.Cryptography;
 
@@ -43,8 +42,6 @@ namespace InfBez.Ui.Services
             if (!fileInfo.Exists || fileModel is null) throw new FileNotValidException("File not found");
 
 
-            //fileModel = new AttachedFile(fileInfo);
-            //fileModel.Id = fileModel.Id; ;
             fileModel.LastWriteTime = fileInfo.LastWriteTime;
             fileModel.CreationTime = fileInfo.CreationTime;
             using (var md5 = MD5.Create())

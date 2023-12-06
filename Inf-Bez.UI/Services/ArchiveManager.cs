@@ -1,8 +1,8 @@
 ﻿namespace InfBez.Ui.Services
 {
+    using System.IO.Compression;
     using System.Security.Cryptography;
     using System.Text;
-    using System.IO.Compression;
 
     public class ArchiveManager
     {
