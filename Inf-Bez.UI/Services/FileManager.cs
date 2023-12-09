@@ -90,6 +90,7 @@ namespace InfBez.Ui.Services
                 {
                     while (isLocked) { }
                 }
+                fs.Close();
             }); 
             t.IsBackground = true;
             t.Start();          
