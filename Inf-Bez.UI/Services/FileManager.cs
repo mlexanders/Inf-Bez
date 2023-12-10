@@ -1,11 +1,12 @@
 ﻿using InfBez.Ui.Difinitions;
+using InfBez.Ui.Models;
 using System.Text;
 
 namespace InfBez.Ui.Services
 {
     public class FileManager : IDisposable
     {
-        public string templateName;
+        public User userTemplate;
         private readonly FileChecker fileChecker;
         private readonly ArchiveManager archiveManager;
         private readonly object locker;
@@ -14,7 +15,7 @@ namespace InfBez.Ui.Services
         public FileManager(FileChecker fileChecker, ArchiveManager archiveManager)
         {
             locker = new();
-            templateName = "file";
+            //userTemplate = "file";
             this.fileChecker = fileChecker;
             this.archiveManager = archiveManager;
         }
@@ -35,8 +36,8 @@ namespace InfBez.Ui.Services
             archiveManager.CreateArchive(archiveManager.GetBasePath(FilePath));
 
             // save data in database
-            if (isUpdate) await fileChecker.OnUpdateFile(archiveManager.GetEncryptionPath(FilePath));
-            else await fileChecker.OnCreateFile(archiveManager.GetEncryptionPath(FilePath));
+            if (isUpdate) await fileChecker.OnUpdateFile(archiveManager.GetEncryptionPath(FilePath), userTemplate.Id);
+            else await fileChecker.OnCreateFile(archiveManager.GetEncryptionPath(FilePath), userTemplate.Id);
 
             LockFile();
         }
@@ -85,7 +86,7 @@ namespace InfBez.Ui.Services
             isLocked = true;
             var t = new Thread(() =>
             {
-                using FileStream fs = File.Open(FilePath, FileMode.Open, FileAccess.Read, FileShare.None);
+                using FileStream fs = File.Open(archiveManager.GetEncryptionPath(FilePath), FileMode.Open, FileAccess.Read, FileShare.None);
                 lock (locker)
                 {
                     while (isLocked) { }
@@ -96,7 +97,7 @@ namespace InfBez.Ui.Services
             t.Start();          
         }
 
-        public void SetTemplateToFileName(string templateName) => this.templateName = templateName.ToLower();
+        public void SetTemplateToFileName(User userTemplate) => this.userTemplate = userTemplate;
         public string CurrentFileName
         {
             get
@@ -105,7 +106,7 @@ namespace InfBez.Ui.Services
                 else return Path.GetFileName(currentFilePath);
             }
         }
-        private string FileName => $"{templateName}-{DateTime.Now:hh-mm-ss}.html";
+        private string FileName => $"{userTemplate.Name}-{DateTime.Now:hh-mm-ss}.html";
         private string? currentFilePath;
         private string FilePath => currentFilePath ?? Path.Combine(Folder, FileName);
 

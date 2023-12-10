@@ -34,7 +34,7 @@ namespace InfBez.Ui.Services
             return true;
         }
 
-        public async Task OnUpdateFile(string fullPath)
+        public async Task OnUpdateFile(string fullPath, int? userId = null)
         {
             var fileModel = await repository.ReadFirst(f => f.FullPath == fullPath); //FindByPath(fullPath);
             var fileInfo = new FileInfo(fullPath);
@@ -51,11 +51,12 @@ namespace InfBez.Ui.Services
                     fileModel.Hash = BitConverter.ToString(md5.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
                 }
             }
+            fileModel.UserId = userId;
 
             await repository.Update(fileModel);
         }
 
-        public async Task OnCreateFile(string fullPath)
+        public async Task OnCreateFile(string fullPath, int? userId = null )
         {
             var fileModel = await repository.FindByPath(fullPath);
             var fileInfo = new FileInfo(fullPath);
@@ -63,7 +64,7 @@ namespace InfBez.Ui.Services
             if (!fileInfo.Exists) throw new FileNotValidException("File not found(File Checker)");
             if (fileModel != null)
             {
-                await OnUpdateFile(fullPath);
+                await OnUpdateFile(fullPath, userId);
                 return;
             }
 
@@ -75,6 +76,7 @@ namespace InfBez.Ui.Services
                     fileModel.Hash = BitConverter.ToString(md5.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
                 }
             }
+            fileModel.UserId = userId; 
             await repository.Create(fileModel);
         }
     }

@@ -73,7 +73,6 @@
             if (value is null) return;
             OnChangeFile(value[0].Name);
         }
-
     }
 
     void ClearSelection()
@@ -89,7 +88,7 @@
         files = new DirectoryInfo(AppSettings.BasePath).GetFiles();
 
         var user = await AuthService.GetCurrentUser();
-        FileManager.SetTemplateToFileName(user.Name);
+        FileManager.SetTemplateToFileName(user);
     }
 
     private string content = "";

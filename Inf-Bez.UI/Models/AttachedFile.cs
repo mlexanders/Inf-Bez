@@ -8,6 +8,8 @@ namespace InfBez.Ui.Models
         public DateTime CreationTime { get; set; }
         public DateTime LastWriteTime { get; set; }
         public string Hash { get; set; }
+        public User User { get; set; }
+        public int? UserId { get; set; }
 
         public AttachedFile(FileInfo fileInfo)
         {
